@@ -1,5 +1,7 @@
-# Flask-MongoDB Web App
+the title of your app: To Do List
 
-In this assignment you will create a web app that relies upon a MongoDB database.
+a simple description of your app
 
-Replace the contents of this file with a description of your own web app, as described in [the instructions](./instructions.md).
+a link to the deployed copy of your app
+
+the full names, NYU Net IDs, and links to GitHub accounts of any collaborators with whom you worked on this app
