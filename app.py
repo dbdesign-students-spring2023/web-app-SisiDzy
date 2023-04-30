@@ -35,7 +35,9 @@ def home():
     """
     Route for the home page
     """
-    return render_template('index.html')
+    pdocs = db.exampleapp.find({"priority": "important"}).sort("created_at",-1) #sort imp tasks 
+    count = db.exampleapp.count_documents({})
+    return render_template('index.html',pdocs=pdocs, count=count)
 
 
 @app.route('/read')
@@ -45,7 +47,8 @@ def read():
     Displays some information for the user with links to other pages.
     """
     docs = db.exampleapp.find({}).sort("created_at", -1) # sort in descending order of created_at timestamp
-    return render_template('read.html', docs=docs) # render the read template
+    pdocs = db.exampleapp.find({"priority": "important"}).sort("created_at",-1) #sort imp tasks 
+    return render_template('read.html', docs=docs, pdocs=pdocs) # render the read template
 
 
 @app.route('/create')
@@ -54,7 +57,8 @@ def create():
     Route for GET requests to the create page.
     Displays a form users can fill out to create a new document.
     """
-    return render_template('create.html') # render the create template
+    pdocs = db.exampleapp.find({"priority": "important"}).sort("created_at",-1) #sort imp tasks 
+    return render_template('create.html', pdocs=pdocs) # render the create template
 
 
 @app.route('/create', methods=['POST'])
@@ -63,15 +67,17 @@ def create_post():
     Route for POST requests to the create page.
     Accepts the form submission data for a new document and saves the document to the database.
     """
-    name = request.form['fname']
-    message = request.form['fmessage']
+    task = request.form['ftask']
+    description = request.form['fdescription']
+    priority = request.form['fpriority']
 
 
     # create a new document with the data the user entered
     doc = {
-        "name": name,
-        "message": message, 
-        "created_at": datetime.datetime.utcnow()
+        "task": task,
+        "description": description, 
+        "created_at": datetime.datetime.utcnow(),
+        "priority": priority
     }
     db.exampleapp.insert_one(doc) # insert a new document
 
@@ -84,8 +90,9 @@ def edit(mongoid):
     Route for GET requests to the edit page.
     Displays a form users can fill out to edit an existing record.
     """
+    pdocs = db.exampleapp.find({"priority": "important"}).sort("created_at",-1) #sort imp tasks 
     doc = db.exampleapp.find_one({"_id": ObjectId(mongoid)})
-    return render_template('edit.html', mongoid=mongoid, doc=doc) # render the edit template
+    return render_template('edit.html', mongoid=mongoid, doc=doc,pdocs=pdocs) # render the edit template
 
 
 @app.route('/edit/<mongoid>', methods=['POST'])
@@ -94,14 +101,16 @@ def edit_post(mongoid):
     Route for POST requests to the edit page.
     Accepts the form submission data for the specified document and updates the document in the database.
     """
-    name = request.form['fname']
-    message = request.form['fmessage']
+    task = request.form['ftask']
+    description = request.form['fdescription']
+    priority = request.form['fpriority']
 
     doc = {
         # "_id": ObjectId(mongoid), 
-        "name": name, 
-        "message": message, 
-        "created_at": datetime.datetime.utcnow()
+        "task": task, 
+        "description": description, 
+        "created_at": datetime.datetime.utcnow(),
+        "priority": priority
     }
 
     db.exampleapp.update_one(
@@ -119,7 +128,14 @@ def delete(mongoid):
     Deletes the specified record from the database, and then redirects the browser to the read page.
     """
     db.exampleapp.delete_one({"_id": ObjectId(mongoid)})
+    pdocs = db.exampleapp.find({"priority": "important"}).sort("created_at",-1) #sort imp tasks 
     return redirect(url_for('read')) # tell the web browser to make a request for the /read route.
+
+@app.route('/delete/all')
+def delete_all():
+    db.exampleapp.delete_many({})
+    return redirect(url_for('read'))
+
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
